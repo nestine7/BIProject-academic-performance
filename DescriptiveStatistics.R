@@ -65,6 +65,7 @@ missmap(dataset, col = c("red", "grey"), legend = TRUE)
 if (!is.element("corrplot", installed.packages()[, 1])) {
   install.packages("corrplot", dependencies = TRUE)
 }
+
 require("corrplot")
 corrplot(cor(dataset[, 4]), method = "circle")
 
@@ -315,4 +316,22 @@ plot(table(predictions_nb_e1071,
                             "Curricular units 2nd sem (approved)",
                             "Curricular units 2nd sem (grade)",
                             "Curricular units 2nd sem (without evaluations)",
-                            "Unemployment rate", "Inflation rate", "GDP","Target")]$Target))
+                            "Unemployment rate", "Inflation rate", "GDP",
+                            "Target")]$Target))
+
+# DATASET 3 (Bootstrapping): Performance Data Set =====
+datasetdataset <-
+  readr::read_delim(
+    "data/data/dataset.csv",
+    delim = ";",
+    escape_double = FALSE,
+    col_types = cols(
+      `Week of the month (first week, second, third, fourth or fifth week` =
+        col_factor(levels = c("1", "2", "3", "4", "5")),
+      `Day of the week (Monday to Friday)` =
+        col_factor(levels = c("2", "3", "4", "5", "6"))
+    ),
+    trim_ws = TRUE
+  )
+summary(demand_forecasting_dataset)
+str(demand_forecasting_dataset)
