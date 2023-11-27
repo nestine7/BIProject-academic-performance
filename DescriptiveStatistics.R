@@ -217,3 +217,102 @@ train_index <- createDataPartition(dataset$Target,
                                    list = FALSE)
 dataset_train <- dataset[train_index, ]
 dataset_test <- dataset[-train_index, ]
+
+## 2. Train a Naive Bayes classifier using the training dataset ----
+### 2.a. OPTION 1: naiveBayes() function in the e1071 package ----
+# The "naiveBayes()" function (case sensitive) in the "e1071" package
+# is less sensitive to missing values hence all the features (variables
+# /attributes) are considered as independent variables that have an effect on
+# the dependent variable (stock).
+
+dataset_model_nb_e1071 <- # nolint
+  e1071::naiveBayes(Target ~ `Marital status` + `Application mode` + `Application order` 
+                    + `Daytime/evening attendance` + `Previous qualification` + 
+                      Nacionality + `Mother's qualification` + `Father's qualification` 
+                    + `Mother's occupation` + `Father's occupation` + Displaced +
+                      `Educational special needs` + `Tuition fees up to date` + Gender
+                    + `Scholarship holder` + `Age at enrollment` + International +
+                      `Curricular units 1st sem (credited)` + 
+                      `Curricular units 1st sem (enrolled)` + 
+                      `Curricular units 1st sem (evaluations)` + 
+                      `Curricular units 1st sem (approved)` + 
+                      `Curricular units 1st sem (grade)` +
+                      `Curricular units 1st sem (without evaluations)` +
+                      `Curricular units 2nd sem (credited)` + 
+                      `Curricular units 2nd sem (enrolled)` + 
+                      `Curricular units 2nd sem (evaluations)` + 
+                      `Curricular units 2nd sem (approved)` + 
+                      `Curricular units 2nd sem (grade)` +
+                      `Curricular units 2nd sem (without evaluations)` + 
+                      `Unemployment rate` + `Inflation rate` + GDP,
+                    data = dataset_train)
+
+## 3. Test the trained model using the testing dataset ----
+### 3.a. Test the trained e1071 Naive Bayes model using the testing dataset ----
+predictions_nb_e1071 <-
+  predict(dataset_model_nb_e1071,
+          dataset_test[, c("Marital status", "Application mode", "Application order",
+                           "Daytime/evening attendance", "Previous qualification",  
+                           "Nacionality","Mother's qualification", "Father's qualification", 
+                           "Mother's occupation", "Father's occupation", "Displaced", 
+                           "Educational special needs", "Tuition fees up to date", 
+                           "Gender", "Scholarship holder", "Age at enrollment",  
+                           "International", "Curricular units 1st sem (credited)",  
+                           "Curricular units 1st sem (enrolled)", 
+                           "Curricular units 1st sem (evaluations)", 
+                           "Curricular units 1st sem (approved)",
+                           "Curricular units 1st sem (grade)",
+                           "Curricular units 1st sem (without evaluations)",
+                           "Curricular units 2nd sem (credited)",  
+                           "Curricular units 2nd sem (enrolled)",
+                           "Curricular units 2nd sem (evaluations)",
+                           "Curricular units 2nd sem (approved)",
+                           "Curricular units 2nd sem (grade)",
+                           "Curricular units 2nd sem (without evaluations)",
+                           "Unemployment rate", "Inflation rate", "GDP")])
+
+
+## 4. View the Results ----
+### 4.a. e1071 Naive Bayes model and test results using a confusion matrix ----
+# Please watch the following video first: https://youtu.be/Kdsp6soqA7o
+print(predictions_nb_e1071)
+caret::confusionMatrix(predictions_nb_e1071,
+                       dataset_test[, c("Marital status", "Application mode", "Application order",
+                                        "Daytime/evening attendance", "Previous qualification",  
+                                        "Nacionality","Mother's qualification", "Father's qualification", 
+                                        "Mother's occupation", "Father's occupation", "Displaced", 
+                                        "Educational special needs", "Tuition fees up to date", 
+                                        "Gender", "Scholarship holder", "Age at enrollment",  
+                                        "International", "Curricular units 1st sem (credited)",  
+                                        "Curricular units 1st sem (enrolled)", 
+                                        "Curricular units 1st sem (evaluations)", 
+                                        "Curricular units 1st sem (approved)",
+                                        "Curricular units 1st sem (grade)",
+                                        "Curricular units 1st sem (without evaluations)",
+                                        "Curricular units 2nd sem (credited)",  
+                                        "Curricular units 2nd sem (enrolled)",
+                                        "Curricular units 2nd sem (evaluations)",
+                                        "Curricular units 2nd sem (approved)",
+                                        "Curricular units 2nd sem (grade)",
+                                        "Curricular units 2nd sem (without evaluations)",
+                                        "Unemployment rate", "Inflation rate", "GDP", "Target")]$Target)
+plot(table(predictions_nb_e1071,
+           dataset_test[, c("Marital status", "Application mode", "Application order",
+                            "Daytime/evening attendance", "Previous qualification",  
+                            "Nacionality","Mother's qualification", "Father's qualification", 
+                            "Mother's occupation", "Father's occupation", "Displaced", 
+                            "Educational special needs", "Tuition fees up to date", 
+                            "Gender", "Scholarship holder", "Age at enrollment",  
+                            "International", "Curricular units 1st sem (credited)",  
+                            "Curricular units 1st sem (enrolled)", 
+                            "Curricular units 1st sem (evaluations)", 
+                            "Curricular units 1st sem (approved)",
+                            "Curricular units 1st sem (grade)",
+                            "Curricular units 1st sem (without evaluations)",
+                            "Curricular units 2nd sem (credited)",  
+                            "Curricular units 2nd sem (enrolled)",
+                            "Curricular units 2nd sem (evaluations)",
+                            "Curricular units 2nd sem (approved)",
+                            "Curricular units 2nd sem (grade)",
+                            "Curricular units 2nd sem (without evaluations)",
+                            "Unemployment rate", "Inflation rate", "GDP","Target")]$Target))
