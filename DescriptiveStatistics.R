@@ -792,3 +792,67 @@ print(modellist)
 results <- resamples(modellist)
 summary(results)
 dotplot(results)
+
+# STEP 1. Install and Load the Required Packages ----
+## caret ----
+if (require("caret")) {
+  require("caret")
+} else {
+  install.packages("caret", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## mlbench ----
+if (require("mlbench")) {
+  require("mlbench")
+} else {
+  install.packages("mlbench", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## plumber ----
+if (require("plumber")) {
+  require("plumber")
+} else {
+  install.packages("plumber", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")}
+# STEP 2. Load the Dataset ----
+library(readr)
+dataset <- read_csv("Data/dataset.csv")
+View(dataset)
+
+# STEP 3. Train the Model ----
+# create an 80%/20% data split for training and testing datasets respectively
+set.seed(9)
+train_index <- createDataPartition(dataset$Target,
+                                   p = 0.80, list = FALSE)
+Target_training <- dataset[train_index, ]
+Target_testing <- dataset[-train_index, ]
+
+set.seed(9)
+train_control <- trainControl(method = "cv", number = 10)
+Target_model_lda <- train(Target ~ ., data = Target_training,
+                            method = "lda", metric = "Accuracy",
+                            trControl = train_control)
+
+# We print a summary of what caret has done
+print(Target_model_lda)
+
+# We then print the details of the model that has been created
+print(Target_model_lda$finalModel)
+
+# STEP 4. Test the Model ----
+# We can test the model
+set.seed(9)
+predictions <- predict(Target_model_lda, newdata = Target_testing)
+confusionMatrix(predictions, Target_testing$Target)
+
+# STEP 5. Save and Load your Model ----
+saveRDS(Target_model_lda, "./models/saved_Target_model_lda.rds")
+# The saved model can then be loaded later as follows:
+loaded_Target_model_lda <- readRDS("./models/saved_Target_model_lda.rds")
+print(loaded_Target_model_lda)
+
+predictions_with_loaded_model <-
+  predict(loaded_Target_model_lda, newdata = Target_testing)
+confusionMatrix(predictions_with_loaded_model, Target_testing$Target)
