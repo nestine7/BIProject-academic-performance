@@ -648,3 +648,147 @@ Target_model_svm <- train(Target ~ ., data = dataset,
 set.seed(7)
 Target_model_rf <- train(Target ~ ., data = dataset,
                            method = "rf", trControl = train_control)
+
+## 3.b. Call the `resamples` Function ----
+# We then create a list of the model results and pass the list as an argument
+# to the `resamples` function.
+
+results <- resamples(list(LDA = Target_model_lda, 
+                        
+                           SVM = Target_model_svm,
+                          RF = Target_model_rf))
+
+summary(results)
+
+## 2. Box and Whisker Plot ----
+scales <- list(x = list(relation = "free"), y = list(relation = "free"))
+bwplot(results, scales = scales)
+
+## 3. Dot Plots ----
+# They show both the mean estimated accuracy as well as the 95% confidence
+# interval (e.g. the range in which 95% of observed scores fell).
+
+scales <- list(x = list(relation = "free"), y = list(relation = "free"))
+dotplot(results, scales = scales)
+
+## 4. Scatter Plot Matrix ----
+splom(results)
+
+# Lab 9: Hyperparameter Tuning ----
+# STEP 1. Install and Load the Required Packages ----
+## randomForest ----
+if (require("randomForest")) {
+  require("randomForest")
+} else {
+  install.packages("randomForest", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## mlbench ----
+if (require("mlbench")) {
+  require("mlbench")
+} else {
+  install.packages("mlbench", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## caret ----
+if (require("caret")) {
+  require("caret")
+} else {
+  install.packages("caret", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## RRF ----
+if (require("RRF")) {
+  require("RRF")
+} else {
+  install.packages("RRF", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+# STEP 2. Load the Dataset ----
+library(readr)
+dataset <- read_csv("Data/dataset.csv")
+View(dataset)
+dataset_independent_variables <- dataset[, 1:34]
+dataset_dependent_variables <- dataset[, 35]
+
+# STEP 3. Train the Model ----
+seed <- 7
+metric <- "Accuracy"
+
+train_control <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+set.seed(seed)
+mtry <- sqrt(ncol(dataset_independent_variables))
+tunegrid <- expand.grid(.mtry = mtry)
+dataset_model_default_rf <- train(Target ~ ., data = dataset, method = "rf",
+                                metric = metric,
+                                # enables us to maintain mtry at a constant
+                                tuneGrid = tunegrid,
+                                trControl = train_control)
+print(dataset_model_default_rf)
+
+# STEP 4. Apply a "Random Search" to identify the best parameter value ----
+# A random search is good if we are unsure of what the value might be and
+# we want to overcome any biases we may have for setting the parameter value
+# (like the suggested "mtry" equation above).
+
+train_control <- trainControl(method = "repeatedcv", number = 10, repeats = 3,
+                              search = "random")
+set.seed(seed)
+mtry <- sqrt(ncol(dataset_independent_variables))
+
+dataset_model_random_search_rf <- train(Target ~ ., data = dataset, method = "rf",
+                                      metric = metric,
+                                      # enables us to randomly search 12 options
+                                      # for the value of mtry
+                                      tuneLength = 12,
+                                      trControl = train_control)
+
+print(dataset_model_random_search_rf)
+plot(dataset_model_random_search_rf)
+
+# STEP 5. Apply a "Grid Search" to identify the best parameter value ----
+train_control <- trainControl(method = "repeatedcv", number = 10, repeats = 3,
+                              search = "grid")
+set.seed(seed)
+
+getModelInfo("RRFglobal")
+
+tunegrid <- expand.grid(.mtry = c(1:10),
+                        .coefReg = seq(from = 0.1, to = 1, by = 0.1))
+
+dataset_model_grid_search_rrf_global <- train(Target ~ ., data = dataset, # nolint
+                                            method = "RRFglobal",
+                                            metric = metric,
+                                            tuneGrid = tunegrid,
+                                            trControl = train_control)
+print(dataset_model_grid_search_rrf_global)
+plot(dataset_model_grid_search_rrf_global)
+
+# STEP 6. Apply a "Manual Search" to identify the best parameter value ----
+# Manual Search
+train_control <- trainControl(method = "repeatedcv", number = 10,
+                              repeats = 3, search = "random")
+
+tunegrid <- expand.grid(.mtry = c(1:5))
+
+modellist <- list()
+for (ntree in c(500, 800, 1000)) {
+  set.seed(seed)
+  dataset_model_manual_search_rf <- train(Class ~ ., data = dataset,
+                                        method = "rf", metric = metric,
+                                        tuneGrid = tunegrid,
+                                        trControl = train_control,
+                                        ntree = ntree)
+  key <- toString(ntree)
+  modellist[[key]] <- dataset_model_manual_search_rf
+}
+
+print(modellist)
+
+results <- resamples(modellist)
+summary(results)
+dotplot(results)
