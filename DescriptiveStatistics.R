@@ -198,6 +198,14 @@ if (require("naivebayes")) {
   install.packages("naivebayes", dependencies = TRUE,
                    repos = "https://cloud.r-project.org")
 }
+  
+## caret ----
+  if (require("caret")) {
+    require("caret")
+  } else {
+    install.packages("caret", dependencies = TRUE,
+                     repos = "https://cloud.r-project.org")
+}
 
 # DATASET 1 (Splitting the dataset): Dataset ----
 
@@ -362,7 +370,7 @@ dataset <-
         `Unemployment rate` = col_double(),
         `Inflation rate` = col_double(),
         `GDP` = col_double(),
-        `Target` = col_factor(levels = c("Dropout", "Graduate", "Enrolled"))
+        `Target` = col_factor(levels = c("Dropout", "Enrolled", "Graduate"))
         
       ),
   
@@ -371,3 +379,272 @@ trim_ws = TRUE
 
 summary(dataset)
 str(dataset)
+
+## 1. Split the dataset ----
+dataset_cor <- cor(dataset[, 3:13])
+View(dataset_cor)
+
+train_index <-
+  createDataPartition(dataset$`Target`,
+                      p = 0.75, list = FALSE)
+dataset_train <- dataset[train_index, ] # nolint
+dataset_test <- dataset[-train_index, ] # nolint
+
+
+## 3. Classification: LDA with k-fold Cross Validation ----
+
+### 3.a. LDA classifier based on a 5-fold cross validation ----
+train_control <- trainControl(method = "cv", number = 5)
+
+dataset_model_lda <-
+  caret::train(`Target` ~ ., data = dataset_train,
+               trControl = train_control, na.action = na.omit, method = "lda2",
+               metric = "Accuracy")
+
+### 3.b. Test the trained LDA model using the testing dataset ----
+predictions_lda <- predict(dataset_model_lda,
+                           dataset_test[, 1:35])
+
+### 3.c. View the summary of the model and view the confusion matrix ----
+print(dataset_model_lda)
+caret::confusionMatrix(predictions_lda, dataset_test$Target)
+
+## 4. Classification: Naive Bayes with Repeated k-fold Cross Validation ----
+### 4.a. Train an e1071::naive Bayes classifier based on the Target variable ----
+dataset_model_nb <-
+  e1071::naiveBayes(`Target` ~ ., data = dataset_train)
+
+### 4.b. Test the trained naive Bayes classifier using the testing dataset ----
+predictions_nb_e1071 <-
+  predict(dataset_model_nb, dataset_test[, 1:14])
+
+### 4.c. View a summary of the naive Bayes model and the confusion matrix ----
+print(dataset_model_nb)
+caret::confusionMatrix(predictions_nb_e1071, dataset_test$Target)
+
+
+## 6. Classification: NNaive Bayes with Repeated k-fold Cross Validation ----
+# In Leave One Out Cross-Validation (LOOCV), a data instance is left out and a
+# model constructed on all other data instances in the training set. This is
+# repeated for all data instances.
+
+### 6.a. Train a Naive Bayes classifier based on an LOOCV ----
+train_control <- trainControl(method = "LOOCV")
+
+dataset_model_nb_loocv <-
+  caret::train(`Target` ~ ., data = dataset_train,
+               trControl = train_control, na.action = na.omit,
+               method = "naive_bayes", metric = "Accuracy")
+
+### 6.b. Test the trained model using the testing dataset ====
+predictions_nb_loocv <-
+  predict(dataset_model_nb_loocv, dataset_test[, 1:35])
+
+### 6.c. View the confusion matrix ====
+print(dataset_model_nb_loocv)
+caret::confusionMatrix(predictions_nb_loocv, dataset_test$Target)
+
+# Lab 6: Evaluation Metrics ----
+
+
+## mlbench ----
+if (require("mlbench")) {
+  require("mlbench")
+} else {
+  install.packages("mlbench", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## pROC ----
+if (require("pROC")) {
+  require("pROC")
+} else {
+  install.packages("pROC", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+# 1. Accuracy and Cohen's Kappa ----
+data(dataset)
+
+dataset_freq <- dataset$Target
+cbind(frequency =
+        table(dataset_freq),
+      percentage = prop.table(table(dataset_freq)) * 100)
+## 1.b. Determine the Baseline Accuracy ----
+Target_freq <- dataset$Target
+cbind(frequency =
+        table(dataset_freq),
+      percentage = prop.table(table(dataset_freq)) * 100)
+
+## 1.c. Split the dataset ----
+# Define a 75:25 train:test data split of the dataset.
+# That is, 75% of the original data will be used to train the model and
+# 25% of the original data will be used to test the model.
+train_index <- createDataPartition(dataset$Target,
+                                   p = 0.75,
+                                   list = FALSE)
+dataset_train <- dataset[train_index, ]
+dataset_test <- dataset[-train_index, ]
+
+## 1.d. Train the Model ----
+# We apply the 5-fold cross validation resampling method
+train_control <- trainControl(method = "cv", number = 5)
+
+set.seed(7)
+dataset_model_multinom <-
+  train(Target ~ ., data = dataset_train, method = "multinom",
+        metric = "Accuracy", trControl = train_control)
+
+## 1.e. Display the Model's Performance ----
+print(dataset_model_multinom)
+# Lab 7.a.: Algorithm Selection for Classification and Regression ----
+
+## stats ----
+if (require("stats")) {
+  require("stats")
+} else {
+  install.packages("stats", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## MASS ----
+if (require("MASS")) {
+  require("MASS")
+} else {
+  install.packages("MASS", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## glmnet ----
+if (require("glmnet")) {
+  require("glmnet")
+} else {
+  install.packages("glmnet", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## kernlab ----
+if (require("kernlab")) {
+  require("kernlab")
+} else {
+  install.packages("kernlab", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## rpart ----
+if (require("rpart")) {
+  require("rpart")
+} else {
+  install.packages("rpart", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## 2. Logistic Regression ----
+
+#### Load and split the dataset ----
+library(readr)
+dataset <- read_csv("data/dataset.csv")
+View(dataset)
+
+# Define a 75:25 train:test data split of the dataset.
+train_index <- createDataPartition(dataset$Target,
+                                   p = 0.75,
+                                   list = FALSE)
+dataset_train <- dataset[train_index, ]
+dataset_test <- dataset[-train_index, ]
+
+
+
+#### Train the model ----
+dataset_model_multinom <- multinom(Target ~ ., data = dataset_train,
+                          family = binomial(link = "logit"))
+
+#### Display the model's details ----
+print(dataset_model_multinom)
+
+#### Make predictions ----
+probabilities <- predict(dataset_model_multinom, dataset_test[, 1:35],
+                         type = "prob")
+print(probabilities)
+predictions <- ifelse(probabilities > 0.5, "pos", "neg")
+print(predictions)
+
+#### Display the model's evaluation metrics ----
+table(predictions, dataset_test$Target)
+
+### 2.b. Logistic Regression with caret ----
+#### Load and split the dataset ----
+library(readr)
+dataset <- read_csv("data/dataset.csv")
+View(dataset)
+
+# Define a 70:30 train:test data split of the dataset.
+train_index <- createDataPartition(dataset$Target,
+                                   p = 0.7,
+                                   list = FALSE)
+dataset_train <- dataset[train_index, ]
+dataset_test <- dataset[-train_index, ]
+
+#### Train the model ----
+# We apply the 5-fold cross validation resampling method
+train_control <- trainControl(method = "cv", number = 5)
+# We can use "regLogistic" instead of "glm"
+# Notice the data transformation applied when we call the train function
+# in caret, i.e., a standardize data transform (centre + scale)
+set.seed(7)
+Target_caret_model_logistic <-
+  train(Target ~ ., data = dataset_train,
+        method = "regLogistic", metric = "Accuracy",
+        preProcess = c("center", "scale"), trControl = train_control)
+
+#### Display the model's details ----
+print(Target_caret_model_logistic)
+
+#### Make predictions ----
+predictions <- predict(Target_caret_model_logistic,
+                       dataset_test[, 1:34])
+
+#### Display the model's evaluation metrics ----
+confusion_matrix <-
+  caret::confusionMatrix(predictions,
+                         dataset_test[, 1:35]$Target)
+print(confusion_matrix)
+
+fourfoldplot(as.table(confusion_matrix), color = c("grey", "lightblue"),
+             main = "Confusion Matrix")
+
+# Lab 8.: Model Performance Comparison ----
+## randomForest ----
+if (require("randomForest")) {
+  require("randomForest")
+} else {
+  install.packages("randomForest", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+library(readr)
+dataset <- read_csv("Data/dataset.csv")
+View(dataset)
+
+train_control <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+
+### LDA ----
+set.seed(7)
+Target_model_lda <- train(Target ~ ., data = dataset,
+                            method = "lda", trControl = train_control)
+
+### CART ----
+set.seed(7)
+Target_model_cart <- train(Target ~ ., data = dataset,
+                             method = "rpart", trControl = train_control)
+
+
+### SVM ----
+set.seed(7)
+Target_model_svm <- train(Target ~ ., data = dataset,
+                            method = "svmRadial", trControl = train_control)
+
+### Random Forest ----
+set.seed(7)
+Target_model_rf <- train(Target ~ ., data = dataset,
+                           method = "rf", trControl = train_control)
