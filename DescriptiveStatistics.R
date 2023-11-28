@@ -320,18 +320,54 @@ plot(table(predictions_nb_e1071,
                             "Target")]$Target))
 
 # DATASET 3 (Bootstrapping): Performance Data Set =====
-datasetdataset <-
-  readr::read_delim(
-    "data/data/dataset.csv",
-    delim = ";",
-    escape_double = FALSE,
-    col_types = cols(
-      `Week of the month (first week, second, third, fourth or fifth week` =
-        col_factor(levels = c("1", "2", "3", "4", "5")),
-      `Day of the week (Monday to Friday)` =
-        col_factor(levels = c("2", "3", "4", "5", "6"))
-    ),
-    trim_ws = TRUE
-  )
-summary(demand_forecasting_dataset)
-str(demand_forecasting_dataset)
+dataset <-
+    dataset <- readr::read_delim(
+      "data/dataset.csv",
+      escape_double = FALSE,
+      col_types = cols(
+        `Marital status` = col_integer(),
+        `Application mode` = col_integer(),
+        `Application order` = col_integer(),
+        `Course` = col_integer(),
+        `Daytime/evening attendance` = col_integer(),
+        `Previous qualification` = col_integer(),
+        `Nacionality` = col_integer(),
+        `Mother's qualification` = col_integer(),
+        `Father's qualification` = col_integer(),
+        `Mother's occupation` = col_integer(),
+        `Father's occupation` = col_integer(),
+        `Displaced` = col_integer(),
+        `Educational special needs` = col_integer(),
+        `Debtor` = col_integer(),
+        `Tuition fees up to date` = col_integer(),
+        `Gender` = col_integer(),
+        `Scholarship holder` = col_integer(),
+        `Age at enrollment` = col_integer(),
+        `International` = col_integer(),
+        
+        `Curricular units 1st sem (credited)` = col_integer(),
+        `Curricular units 1st sem (enrolled)` = col_integer(),
+        `Curricular units 1st sem (evaluations)` = col_integer(),
+        `Curricular units 1st sem (approved)` = col_integer(),
+        `Curricular units 1st sem (grade)` = col_double(),
+        `Curricular units 1st sem (without evaluations)` = col_integer(),
+        
+        `Curricular units 2nd sem (credited)` = col_integer(),
+        `Curricular units 2nd sem (enrolled)` = col_integer(),
+        `Curricular units 2nd sem (evaluations)` = col_integer(),
+        `Curricular units 2nd sem (approved)` = col_integer(),
+        `Curricular units 2nd sem (grade)` = col_double(),
+        `Curricular units 2nd sem (without evaluations)` = col_integer(),
+        
+        `Unemployment rate` = col_double(),
+        `Inflation rate` = col_double(),
+        `GDP` = col_double(),
+        `Target` = col_factor(levels = c("Dropout", "Graduate", "Enrolled"))
+        
+      ),
+  
+trim_ws = TRUE
+)
+
+summary(dataset)
+str(dataset)
