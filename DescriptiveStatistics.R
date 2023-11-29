@@ -1,3 +1,5 @@
+#Step 1 Load the required packages ----
+
 if (!is.element("renv", installed.packages()[, 1])) {
   install.packages("renv", dependencies = TRUE)
 }
@@ -12,25 +14,27 @@ if (!is.element("languageserver", installed.packages()[, 1])) {
 }
 require("languageserver")
 
+
+
 library(readr)
 dataset <- read_csv("data/dataset.csv")
 View(dataset)
-
-# 1. Measures of frequency ----
+# Step 2 Perform the respective measures ----
+## 1. Measures of frequency ----
 dataset_freq <- dataset$`Daytime/evening attendance`
 cbind(frequency = table(dataset_freq),
       percentage = prop.table(table(dataset_freq)) * 100)
 
-# 2. Measures of central tendency ----
+## 2. Measures of central tendency ----
 dataset_mode <- names(table(dataset$`Daytime/evening attendance`))[
   which(table(dataset$`Daytime/evening attendance`) == max(table(dataset$`Daytime/evening attendance`)))
 ]
 print(dataset_mode)
 
-# 3. Measures of distribution/dispersion/spread/scatter/variability ----
+## 3. Measures of distribution/dispersion/spread/scatter/variability ----
 summary(dataset)
 
-# 4. Measures of Relationship ----
+## 4. Measures of Relationship ----
 dataset_cov <- cov(dataset[, 4])
 View(dataset_cov)
 
@@ -61,7 +65,7 @@ require("Amelia")
 
 missmap(dataset, col = c("red", "grey"), legend = TRUE)
 
-### STEP 21. Create a Correlation Plot ----
+### Create a Correlation Plot ----
 if (!is.element("corrplot", installed.packages()[, 1])) {
   install.packages("corrplot", dependencies = TRUE)
 }
@@ -69,7 +73,7 @@ if (!is.element("corrplot", installed.packages()[, 1])) {
 require("corrplot")
 corrplot(cor(dataset[, 4]), method = "circle")
 
-### STEP 23. Create Multivariate Box and Whisker Plots by Class ----
+### Create Multivariate Box and Whisker Plots by Class ----
 if (!is.element("caret", installed.packages()[, 1])) {
   install.packages("caret", dependencies = TRUE)
 }
@@ -207,7 +211,7 @@ if (require("naivebayes")) {
                      repos = "https://cloud.r-project.org")
 }
 
-# DATASET 1 (Splitting the dataset): Dataset ----
+# Step 4 (Splitting the dataset): Dataset ----
 
 library(readr)
 dataset <- read_csv("data/dataset.csv")
@@ -327,7 +331,7 @@ plot(table(predictions_nb_e1071,
                             "Unemployment rate", "Inflation rate", "GDP",
                             "Target")]$Target))
 
-# DATASET 3 (Bootstrapping): Performance Data Set =====
+# Step 5 (Bootstrapping): Performance Data Set =====
 dataset <-
     dataset <- readr::read_delim(
       "data/dataset.csv",
@@ -391,9 +395,9 @@ dataset_train <- dataset[train_index, ] # nolint
 dataset_test <- dataset[-train_index, ] # nolint
 
 
-## 3. Classification: LDA with k-fold Cross Validation ----
+## 2. Classification: LDA with k-fold Cross Validation ----
 
-### 3.a. LDA classifier based on a 5-fold cross validation ----
+### 2.a. LDA classifier based on a 5-fold cross validation ----
 train_control <- trainControl(method = "cv", number = 5)
 
 dataset_model_lda <-
@@ -401,34 +405,34 @@ dataset_model_lda <-
                trControl = train_control, na.action = na.omit, method = "lda2",
                metric = "Accuracy")
 
-### 3.b. Test the trained LDA model using the testing dataset ----
+### 2.b. Test the trained LDA model using the testing dataset ----
 predictions_lda <- predict(dataset_model_lda,
                            dataset_test[, 1:35])
 
-### 3.c. View the summary of the model and view the confusion matrix ----
+### 2.c. View the summary of the model and view the confusion matrix ----
 print(dataset_model_lda)
 caret::confusionMatrix(predictions_lda, dataset_test$Target)
 
-## 4. Classification: Naive Bayes with Repeated k-fold Cross Validation ----
-### 4.a. Train an e1071::naive Bayes classifier based on the Target variable ----
+## 3. Classification: Naive Bayes with Repeated k-fold Cross Validation ----
+### 3.a. Train an e1071::naive Bayes classifier based on the Target variable ----
 dataset_model_nb <-
   e1071::naiveBayes(`Target` ~ ., data = dataset_train)
 
-### 4.b. Test the trained naive Bayes classifier using the testing dataset ----
+### 3.b. Test the trained naive Bayes classifier using the testing dataset ----
 predictions_nb_e1071 <-
   predict(dataset_model_nb, dataset_test[, 1:14])
 
-### 4.c. View a summary of the naive Bayes model and the confusion matrix ----
+### 3.c. View a summary of the naive Bayes model and the confusion matrix ----
 print(dataset_model_nb)
 caret::confusionMatrix(predictions_nb_e1071, dataset_test$Target)
 
 
-## 6. Classification: NNaive Bayes with Repeated k-fold Cross Validation ----
+## 4. Classification: NNaive Bayes with Repeated k-fold Cross Validation ----
 # In Leave One Out Cross-Validation (LOOCV), a data instance is left out and a
 # model constructed on all other data instances in the training set. This is
 # repeated for all data instances.
 
-### 6.a. Train a Naive Bayes classifier based on an LOOCV ----
+### 4.a. Train a Naive Bayes classifier based on an LOOCV ----
 train_control <- trainControl(method = "LOOCV")
 
 dataset_model_nb_loocv <-
@@ -436,15 +440,15 @@ dataset_model_nb_loocv <-
                trControl = train_control, na.action = na.omit,
                method = "naive_bayes", metric = "Accuracy")
 
-### 6.b. Test the trained model using the testing dataset ====
+### 4.b. Test the trained model using the testing dataset ====
 predictions_nb_loocv <-
   predict(dataset_model_nb_loocv, dataset_test[, 1:35])
 
-### 6.c. View the confusion matrix ====
+### 4.c. View the confusion matrix ====
 print(dataset_model_nb_loocv)
 caret::confusionMatrix(predictions_nb_loocv, dataset_test$Target)
 
-# Lab 6: Evaluation Metrics ----
+# Step 6: Evaluation Metrics ----
 
 
 ## mlbench ----
@@ -497,7 +501,7 @@ dataset_model_multinom <-
 
 ## 1.e. Display the Model's Performance ----
 print(dataset_model_multinom)
-# Lab 7.a.: Algorithm Selection for Classification and Regression ----
+# Step 7.a.: Algorithm Selection for Classification and Regression ----
 
 ## stats ----
 if (require("stats")) {
@@ -539,7 +543,7 @@ if (require("rpart")) {
                    repos = "https://cloud.r-project.org")
 }
 
-## 2. Logistic Regression ----
+## b. Logistic Regression ----
 
 #### Load and split the dataset ----
 library(readr)
@@ -572,8 +576,8 @@ print(predictions)
 #### Display the model's evaluation metrics ----
 table(predictions, dataset_test$Target)
 
-### 2.b. Logistic Regression with caret ----
-#### Load and split the dataset ----
+####c. Logistic Regression with caret ----
+### Load and split the dataset ----
 library(readr)
 dataset <- read_csv("data/dataset.csv")
 View(dataset)
@@ -613,7 +617,7 @@ print(confusion_matrix)
 fourfoldplot(as.table(confusion_matrix), color = c("grey", "lightblue"),
              main = "Confusion Matrix")
 
-# Lab 8.: Model Performance Comparison ----
+# Step 8.: Model Performance Comparison ----
 ## randomForest ----
 if (require("randomForest")) {
   require("randomForest")
@@ -628,28 +632,28 @@ View(dataset)
 
 train_control <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
 
-### LDA ----
+### a. LDA ----
 set.seed(7)
 Target_model_lda <- train(Target ~ ., data = dataset,
                             method = "lda", trControl = train_control)
 
-### CART ----
+### b. CART ----
 set.seed(7)
 Target_model_cart <- train(Target ~ ., data = dataset,
                              method = "rpart", trControl = train_control)
 
 
-### SVM ----
+### c. SVM ----
 set.seed(7)
 Target_model_svm <- train(Target ~ ., data = dataset,
                             method = "svmRadial", trControl = train_control)
 
-### Random Forest ----
+### d. Random Forest ----
 set.seed(7)
 Target_model_rf <- train(Target ~ ., data = dataset,
                            method = "rf", trControl = train_control)
 
-## 3.b. Call the `resamples` Function ----
+## 8.1.a. Call the `resamples` Function ----
 # We then create a list of the model results and pass the list as an argument
 # to the `resamples` function.
 
@@ -660,22 +664,22 @@ results <- resamples(list(LDA = Target_model_lda,
 
 summary(results)
 
-## 2. Box and Whisker Plot ----
+## b. Box and Whisker Plot ----
 scales <- list(x = list(relation = "free"), y = list(relation = "free"))
 bwplot(results, scales = scales)
 
-## 3. Dot Plots ----
+## c. Dot Plots ----
 # They show both the mean estimated accuracy as well as the 95% confidence
 # interval (e.g. the range in which 95% of observed scores fell).
 
 scales <- list(x = list(relation = "free"), y = list(relation = "free"))
 dotplot(results, scales = scales)
 
-## 4. Scatter Plot Matrix ----
+## d. Scatter Plot Matrix ----
 splom(results)
 
-# Lab 9: Hyperparameter Tuning ----
-# STEP 1. Install and Load the Required Packages ----
+# Step 9: Hyperparameter Tuning ----
+## A. Install and Load the Required Packages ----
 ## randomForest ----
 if (require("randomForest")) {
   require("randomForest")
@@ -708,14 +712,14 @@ if (require("RRF")) {
                    repos = "https://cloud.r-project.org")
 }
 
-# STEP 2. Load the Dataset ----
+# B. Load the Dataset ----
 library(readr)
 dataset <- read_csv("Data/dataset.csv")
 View(dataset)
 dataset_independent_variables <- dataset[, 1:34]
 dataset_dependent_variables <- dataset[, 35]
 
-# STEP 3. Train the Model ----
+# C. Train the Model ----
 seed <- 7
 metric <- "Accuracy"
 
@@ -730,7 +734,7 @@ dataset_model_default_rf <- train(Target ~ ., data = dataset, method = "rf",
                                 trControl = train_control)
 print(dataset_model_default_rf)
 
-# STEP 4. Apply a "Random Search" to identify the best parameter value ----
+# D. Apply a "Random Search" to identify the best parameter value ----
 # A random search is good if we are unsure of what the value might be and
 # we want to overcome any biases we may have for setting the parameter value
 # (like the suggested "mtry" equation above).
@@ -750,7 +754,7 @@ dataset_model_random_search_rf <- train(Target ~ ., data = dataset, method = "rf
 print(dataset_model_random_search_rf)
 plot(dataset_model_random_search_rf)
 
-# STEP 5. Apply a "Grid Search" to identify the best parameter value ----
+# E. Apply a "Grid Search" to identify the best parameter value ----
 train_control <- trainControl(method = "repeatedcv", number = 10, repeats = 3,
                               search = "grid")
 set.seed(seed)
@@ -768,7 +772,7 @@ dataset_model_grid_search_rrf_global <- train(Target ~ ., data = dataset, # noli
 print(dataset_model_grid_search_rrf_global)
 plot(dataset_model_grid_search_rrf_global)
 
-# STEP 6. Apply a "Manual Search" to identify the best parameter value ----
+# F. Apply a "Manual Search" to identify the best parameter value ----
 # Manual Search
 train_control <- trainControl(method = "repeatedcv", number = 10,
                               repeats = 3, search = "random")
@@ -793,7 +797,8 @@ results <- resamples(modellist)
 summary(results)
 dotplot(results)
 
-# STEP 1. Install and Load the Required Packages ----
+# STEP 10.Training the Model----
+## A. Install and Load the Required Packages ----
 ## caret ----
 if (require("caret")) {
   require("caret")
@@ -816,12 +821,12 @@ if (require("plumber")) {
 } else {
   install.packages("plumber", dependencies = TRUE,
                    repos = "https://cloud.r-project.org")}
-# STEP 2. Load the Dataset ----
+#  B. Load the Dataset ----
 library(readr)
 dataset <- read_csv("Data/dataset.csv")
 View(dataset)
 
-# STEP 3. Train the Model ----
+# C. Train the Model ----
 # create an 80%/20% data split for training and testing datasets respectively
 set.seed(9)
 train_index <- createDataPartition(dataset$Target,
@@ -841,18 +846,106 @@ print(Target_model_lda)
 # We then print the details of the model that has been created
 print(Target_model_lda$finalModel)
 
-# STEP 4. Test the Model ----
+# D. Test the Model ----
 # We can test the model
 set.seed(9)
 predictions <- predict(Target_model_lda, newdata = Target_testing)
 confusionMatrix(predictions, Target_testing$Target)
 
-# STEP 5. Save and Load your Model ----
-saveRDS(Target_model_lda, "./models/saved_Target_model_lda.rds")
+# E. Save and Load your Model ----
+saveRDS(Target_model_lda, "./model/saved_Target_model_lda.rds")
 # The saved model can then be loaded later as follows:
-loaded_Target_model_lda <- readRDS("./models/saved_Target_model_lda.rds")
+loaded_Target_model_lda <- readRDS("./model/saved_Target_model_lda.rds")
 print(loaded_Target_model_lda)
 
 predictions_with_loaded_model <-
   predict(loaded_Target_model_lda, newdata = Target_testing)
 confusionMatrix(predictions_with_loaded_model, Target_testing$Target)
+
+# STEP 11. Creating Functions in R ----
+
+# Plumber requires functions, an example of the syntax for creating a function
+# in R is:
+
+name_of_function <- function(arg) {
+  # Do something with the argument called `arg`
+}
+
+## plumber ----
+if (require("plumber")) {
+  require("plumber")
+} else {
+  install.packages("plumber", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+loaded_Target_model_lda <- readRDS("./model/saved_Target_model_lda.rds")
+
+predict_Target <-
+  function(`arg_Marital status, arg_Application mode, arg_Application order, 
+           arg_Daytime/evening attendance, arg_Previous qualification,
+             arg_Nacionality, arg_Mother's qualification, arg_Father's qualification, 
+            arg_Mother's occupation, arg_Father's occupation, arg_Displaced,
+             arg_Educational special needs, arg_Tuition fees up to date, arg_Gender,
+            arg_Scholarship holder, arg_Age at enrollment, arg_International,
+             arg_Curricular units 1st sem (credited),
+             arg_Curricular units 1st sem (enrolled) , 
+             arg_Curricular units 1st sem (evaluations),
+             arg_Curricular units 1st sem (approved), 
+             arg_Curricular units 1st sem (grade),
+             arg_Curricular units 1st sem (without evaluations),
+             arg_Curricular units 2nd sem (credited),
+             arg_Curricular units 2nd sem (enrolled),
+             arg_Curricular units 2nd sem (evaluations),
+             arg_Curricular units 2nd sem (approved),
+             arg_Curricular units 2nd sem (grade),
+             arg_Curricular units 2nd sem (without evaluations), 
+             arg_Unemployment rate, arg_Inflation rate, arg_GDP`)
+   {
+    # Create a data frame using the arguments
+    to_be_predicted <-
+    data.frame(
+    `Marital status = as.numeric(arg_Marital status)
+    Application mode = as.numeric(arg_Application mode), 
+    Application order = as.numeric(arg_Application order), 
+    Daytime/evening attendance = as.numeric(arg_Daytime/evening attendance), 
+    Previous qualification = as.numeric(arg_Previous qualification),
+    Nacionality = as.numeric(arg_Nacionality), 
+    Mother's qualification = as.numeric(arg_Mother's qualification), 
+    Father's qualification = as.numeric(arg_Father's qualification), 
+    Mother's occupation = as.numeric(arg_Mother's occupation), 
+    Father's occupation = as.numeric(arg_Father's occupation), 
+    Displaced = as.numeric(arg_Displaced),
+    Educational special needs = as.numeric(arg_Educational special needs), 
+    Tuition fees up to date = as.numeric(arg_Tuition fees up to date), 
+    Gender = as.numericarg_(Gender),
+    Scholarship holder = as.numeric(arg_Scholarship holder), 
+    Age at enrollment, = as.numeric(arg_Age at enrollment), 
+    International= as.numeric(arg_International),
+    Curricular units 1st sem (credited) = as.numeric(arg_Curricular units 1st sem (credited)),
+    Curricular units 1st sem (enrolled) = as.numeric(arg_Curricular units 1st sem (enrolled)) , 
+    Curricular units 1st sem (evaluations) = as.numeric(arg_Curricular units 1st sem (evaluations)),
+    Curricular units 1st sem (approved) = as.numericarg_(Curricular units 1st sem (approved)), 
+    Curricular units 1st sem (grade) = as.numericarg_(Curricular units 1st sem (grade)),
+    Curricular units 1st sem (without evaluations) = as.numeric(arg_Curricular units 1st sem (without evaluations)),
+    Curricular units 2nd sem (credited) = as.numeric(arg_Curricular units 2nd sem (credited)),
+    Curricular units 2nd sem (enrolled) = as.numeric(arg_Curricular units 2nd sem (enrolled)),
+    Curricular units 2nd sem (evaluations) = as.numeric(arg_Curricular units 2nd sem (evaluations)),
+    Curricular units 2nd sem (approved) = as.numeric(arg_Curricular units 2nd sem (approved)),
+    Curricular units 2nd sem (grade) = as.numeric(arg_Curricular units 2nd sem (grade)),
+    Curricular units 2nd sem (without evaluations) = as.numeric(arg_Curricular units 2nd sem (without evaluations)), 
+    Unemployment rate = as.numeric(arg_Unemployment rate), 
+    Inflation rate = as.numeric(arg_Inflation rate), 
+    GDP = as.numeric(arg_GDP)`)
+                 
+    # Make a prediction based on the data frame
+    predict(loaded_Target_model_lda, to_be_predicted)
+  }
+
+# STEP 12. Process a Plumber API ----
+# This allows us to process a plumber API
+api <- plumber::plumb("DescriptiveStatistics.R")
+
+# STEP 13. Run the API on a specific port ----
+# Specify a constant localhost port to use
+api$run(host = "127.0.0.1", port = 5022)
